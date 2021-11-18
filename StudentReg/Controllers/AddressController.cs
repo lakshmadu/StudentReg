@@ -8,9 +8,11 @@ using StudentReg.Services.Models;
 using StudentReg.Services.Students;
 using AutoMapper;
 using StudentReg.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StudentReg.Controllers
 {
+    [Authorize]
     [Route("api/student/{studentId}/address")]
     [Controller]
     public class AddressController : Controller

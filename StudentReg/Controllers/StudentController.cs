@@ -8,25 +8,36 @@ using StudentReg.Services.Students;
 using AutoMapper;
 using StudentReg.Services.Models;
 using StudentReg.Models;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using StudentReg.Services.Security;
 
 namespace StudentReg.Controllers
 {
+    [Authorize]
     [Route("api/student")]
     [Controller]
     public class StudentController : Controller
     {
         private readonly IStudentRepository _service;
         private readonly IMapper _mapper;
-        public StudentController(IStudentRepository service, IMapper mapper)
+        private readonly IConfiguration _config;
+        private readonly IJWTAuthenticationManager _JWTAuthenticationManager;
+        public StudentController(IStudentRepository service, IMapper mapper,IConfiguration config, IJWTAuthenticationManager jWTAuthenticationManager)
         {
             _service = service;
             _mapper = mapper;
+            _config = config;
+            _JWTAuthenticationManager = jWTAuthenticationManager;
             
         }
 
 
         //get one student
-        [HttpGet("{studentId}", Name = "GetStudent")]
+        [HttpGet("{StudentId}", Name = "GetStudent")]
         public IActionResult GetStudent(int StudentId)
         {
             var student = _service.GetStudent(StudentId);
@@ -79,6 +90,18 @@ namespace StudentReg.Controllers
             _service.DeleteStudent(student,address);
 
             return NoContent();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("authenticate")]
+        public IActionResult Authenticate([FromBody] UserCred userCred)
+        {
+            var token = _JWTAuthenticationManager.Authenticate(userCred.Username, userCred.Password);
+
+            if (token == null)
+                return Unauthorized();
+
+            return Ok(token);
         }
 
 
